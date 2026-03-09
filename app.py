@@ -6,7 +6,13 @@ import streamlit as st
 
 """###Data Loading"""
 
-df = pd.read_csv('/content/ipl_powerplay_dataset_1000_rows.csv')
+# Generate sample IPL powerplay dataset
+np.random.seed(42)
+df = pd.DataFrame({
+    'powerplay_score': np.random.randint(20, 120, 1000),
+    'powerplay_wickets': np.random.randint(0, 6, 1000),
+    'result': np.random.randint(0, 2, 1000)
+})
 
 X = df[['powerplay_score','powerplay_wickets']]
 y = df['result']
@@ -41,7 +47,7 @@ powerplay_wickets = st.slider(
 
 if st.button("Predict Result"):
 
-    X_test = np.array([[powerplay_score, powerplay_wickets]])
+    X_test = pd.DataFrame([[powerplay_score, powerplay_wickets]], columns=['powerplay_score', 'powerplay_wickets'])
 
     y_pred = model.predict(X_test)
 
