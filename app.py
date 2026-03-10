@@ -4,9 +4,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 import streamlit as st
 
-"""###Data Loading"""
-
-# Generate sample IPL powerplay dataset
+# Model Training
 np.random.seed(42)
 df = pd.DataFrame({
     'powerplay_score': np.random.randint(20, 120, 1000),
@@ -14,44 +12,32 @@ df = pd.DataFrame({
     'result': np.random.randint(0, 2, 1000)
 })
 
-X = df[['powerplay_score','powerplay_wickets']]
+X = df[['powerplay_score', 'powerplay_wickets']]
 y = df['result']
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-model = LogisticRegression()
+model = LogisticRegression(max_iter=500, random_state=42)
 model.fit(X_train, y_train)
 
-# ---------------- STREAMLIT UI ---------------- #
+accuracy = model.score(X_test, y_test)
 
-st.title("🏏 IPL Powerplay Win Predictor")
+# UI
+st.title("IPL Match Win Predictor")
 
-st.write("Predict match result based on powerplay performance")
+score = st.slider("Powerplay Score", 0, 120, 50)
+wickets = st.slider("Wickets Lost", 0, 6, 1)
 
-st.markdown("---")
-
-# SLIDERS
-powerplay_score = st.slider(
-    "Select Powerplay Score",
-    min_value=0,
-    max_value=120,
-    value=50
-)
-
-powerplay_wickets = st.slider(
-    "Select Powerplay Wickets",
-    min_value=0,
-    max_value=6,
-    value=1
-)
-
-if st.button("Predict Result"):
-
-    X_test = pd.DataFrame([[powerplay_score, powerplay_wickets]], columns=['powerplay_score', 'powerplay_wickets'])
-
-    y_pred = model.predict(X_test)
-
-    if y_pred[0] == 1:
-        st.success("🏆 Prediction: Team will WIN")
+if st.button("Predict"):
+    input_data = pd.DataFrame({'powerplay_score': [score], 'powerplay_wickets': [wickets]})
+    pred = model.predict(input_data)[0]
+    prob = model.predict_proba(input_data)[0]
+    
+    if pred == 1:
+        st.write("Result: WIN")
+        st.write(f"Confidence: {prob[1]:.2%}")
     else:
-        st.error("❌ Prediction: Team will LOSE")
+        st.write("Result: LOSS")
+        st.write(f"Confidence: {prob[0]:.2%}")
+    
+    st.write(f"Model Accuracy: {accuracy:.2%}")
